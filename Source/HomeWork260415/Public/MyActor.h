@@ -13,7 +13,7 @@ class UProjectileMovementComponent;
 
 
 UCLASS()
-class L20260408_FIRST_API AMyActor : public AActor
+class HOMEWORK260415_API AMyActor : public AActor
 {
 	GENERATED_BODY()
 

@@ -26,7 +26,7 @@ AMyActor::AMyActor()
 	Body->SetupAttachment(Box);
 	Body->SetRelativeRotation(FRotator(-90.f, 0, 0));
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_Body(TEXT(""));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_Body(TEXT("/Script/Engine.StaticMesh'/Game/Rocket/Meshes/SM_Rocket.SM_Rocket'"));
 
 	if (SM_Body.Succeeded())
 	{

@@ -6,12 +6,20 @@
 #include "GameFramework/PlayerController.h"
 #include "MyPlayerController.generated.h"
 
+
+
+
 /**
- * 
+ *
  */
 UCLASS()
 class HOMEWORK260415_API AMyPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+	AMyPlayerController();
+
+
+
 };
