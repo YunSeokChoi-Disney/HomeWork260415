@@ -38,7 +38,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Components)
 	TObjectPtr<UBoxComponent> Box;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
@@ -85,3 +85,7 @@ public:
 	float PropellerRotationSpeed = 7200.0f;
 
 };
+
+
+//UBocCompononent
+TObjectPtr<UStaticMeshComponent> GetMeshComponent(USceneComponent* Component);

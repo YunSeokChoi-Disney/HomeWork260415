@@ -2,9 +2,15 @@
 
 
 #include "MyGameModeBase.h"
+#include "MyPawn.h"
+#include "MyPlayerController.h"
 
+//CDO �⺻�� �ʱ�ȭ ������
 AMyGameModeBase::AMyGameModeBase()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Hello World!!"));
-}
+	DefaultPawnClass = AMyPawn::StaticClass(); //mean AMyPawn�� �̸�
+	//C++������ Ŭ���� �̸� ����ġ�� ����� ��� CDO�� �����͸� ����ħ
 
+	PlayerControllerClass = AMyPlayerController::StaticClass();
+
+}

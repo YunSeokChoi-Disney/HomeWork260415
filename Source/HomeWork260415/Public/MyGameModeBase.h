@@ -7,14 +7,14 @@
 #include "MyGameModeBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
-class HOMEWORK260415_API AMyGameModeBase : public AGameModeBase
+class  HOMEWORK260415_API AMyGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-
 public:
-	AMyGameModeBase();        // Constructor declaration
-	
+
+	AMyGameModeBase();
+
 };
