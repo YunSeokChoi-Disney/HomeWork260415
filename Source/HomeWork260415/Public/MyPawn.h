@@ -4,20 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include <EnhancedInputLibrary.h>
+
+#include "InputAction.h"
+
 #include "MyPawn.generated.h"
 
 
 class UBoxComponent;
 class UStaticMeshComponent;
+class UFloatingPawnMovement;
 class UArrowComponent;
 class USpringArmComponent;
 class UCameraComponent;
-class UFloatingPawnMovement;
-class UMyStaticMeshComponent;
-
+class UInputAction;
+class ARocket;
 
 UCLASS()
-class HOMEWORK260415_API AMyPawn : public APawn
+class  HOMEWORK260415_API AMyPawn : public APawn
 {
 	GENERATED_BODY()
 
@@ -33,59 +37,52 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void RotatePropeller(USceneComponent* Where, float RotaionSpeed);
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Components)
+	void Rotate(const FInputActionValue& Value);
+
+	void Fire(const FInputActionValue& Value);
+
+	void Boost(const FInputActionValue& Value);
+
+	void Unboost(const FInputActionValue& Value);
+
+	//UBoxComponent* Box;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UBoxComponent> Box;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> Body;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
-	TObjectPtr<UMyStaticMeshComponent> Left;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> Left;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
-	TObjectPtr<UMyStaticMeshComponent> Right;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UStaticMeshComponent> Right;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UArrowComponent> Arrow;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
-	TObjectPtr<USpringArmComponent> SpringArm;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
-	TObjectPtr<UCameraComponent> Camera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UFloatingPawnMovement> Movement;
 
-	void Pitch(float Value);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USpringArmComponent> SpringArm;
 
-	void Roll(float Value);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UCameraComponent> Camera;
 
-	void Fire();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Rotate;
 
-	void Boost();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Fire;
 
-	void Unboost();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Boost;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
-	float MoveSpeed = 1000.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
-	float RotationSpeed = 60.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
-	float BoostValue = 0.5f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Data)
-	float PropellerRotationSpeed = 7200.0f;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Data")
+	TSubclassOf<ARocket> RocketTemplate;
 };
-
-
-//UBocCompononent
-TObjectPtr<UStaticMeshComponent> GetMeshComponent(USceneComponent* Component);

@@ -2,17 +2,16 @@
 
 
 #include "MyPawn.h"
-
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/ArrowComponent.h"
-#include "Camera/CameraComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
+#include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "MyStaticMeshComponent.h"
+#include "MyROcket.h"
 
-#include "MyActor.h"
 
 // Sets default values
 AMyPawn::AMyPawn()
@@ -21,56 +20,38 @@ AMyPawn::AMyPawn()
 	PrimaryActorTick.bCanEverTick = true;
 
 
-	
 	Box = CreateDefaultSubobject<UBoxComponent>(TEXT("Box"));
 	RootComponent = Box;
-	Box->SetBoxExtent(FVector(40.0f, 44.2f, 12.4f));
-
 
 	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
-	Body->SetupAttachment(Box);     
+	Body->SetupAttachment(Box);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_Body(TEXT("/Script/Engine.StaticMesh'/Game/P38/Meshes/SM_P38_Body.SM_P38_Body'"));
-
-	if (SM_Body.Succeeded())
-	{
-		Body->SetStaticMesh(SM_Body.Object);
-	}
-
-	Left = CreateDefaultSubobject<UMyStaticMeshComponent>(TEXT("Left"));
+	Left = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Left"));
 	Left->SetupAttachment(Body);
 
-	Right = CreateDefaultSubobject<UMyStaticMeshComponent>(TEXT("Right"));
+	Left->SetRelativeLocation(FVector(39.4f, -20.0f, 1.4f));
+
+	Right = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Right"));
 	Right->SetupAttachment(Body);
+	Right->SetRelativeLocation(FVector(39.4f, 20.0f, 1.4f));
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_Propeller(TEXT("/Script/Engine.StaticMesh'/Game/P38/Meshes/SM_P38_Propeller.SM_P38_Propeller'"));
-	if (SM_Propeller.Succeeded())
-	{
-		Left->SetStaticMesh(SM_Propeller.Object);
-		Right->SetStaticMesh(SM_Propeller.Object);
-	}
-
-	Left->SetRelativeLocation(FVector(37.1f, -21.4f, 0.5f));
-	Right->SetRelativeLocation(FVector(37.1f, 21.4f, 0.5f));
-
-	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
-	Arrow->SetupAttachment(Box);
-	Arrow->SetRelativeLocation(FVector(200.f, 0, 0));
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(Box);
-	SpringArm->SocketOffset = FVector(0, 0, 33.33f);
-	SpringArm->TargetArmLength = 120.0f;
-	SpringArm->bEnableCameraLag = true;
-	SpringArm->bEnableCameraRotationLag = true;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 
-	Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
-	//Movement->MaxSpeed = MoveSpeed;
-	Movement->MaxSpeed = 0;
+	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
+	Arrow->SetupAttachment(Box);
 
+	Movement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Movement"));
+
+	static ConstructorHelpers::FClassFinder<ARocket> BP_Rocket(TEXT("/Script/Engine.Blueprint'/Game/Blueprints/BP_Rocket.BP_Rocket_C'"));
+	if (BP_Rocket.Succeeded())
+	{
+		RocketTemplate = BP_Rocket.Class;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -85,18 +66,10 @@ void AMyPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	AddMovementInput(GetActorForwardVector(), BoostValue);
+	AddMovementInput(GetActorForwardVector());
 
-	//RotatePropeller(Left, PropellerRotationSpeed);
-	//RotatePropeller(Right, PropellerRotationSpeed);
-	//Left->AddLocalRotation(FRotator(0, 0, 7200.f * DeltaTime));
-	//Right->AddLocalRotation(FRotator(0, 0, 7200.f * DeltaTime));
-
-}
-
-void AMyPawn::RotatePropeller(USceneComponent* Where, float RotaionSpeed)
-{
-	Where->AddLocalRotation(FRotator(0, 0, RotaionSpeed * UGameplayStatics::GetWorldDeltaSeconds(GetWorld())));
+	Left->AddRelativeRotation(FRotator(0, 0, DeltaTime * 4800.0f));
+	Right->AddRelativeRotation(FRotator(0, 0, DeltaTime * 4800.0f));
 
 }
 
@@ -105,36 +78,35 @@ void AMyPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis(TEXT("Pitch"), this, &AMyPawn::Pitch);
-	PlayerInputComponent->BindAxis(TEXT("Roll"), this, &AMyPawn::Roll);
-	PlayerInputComponent->BindAction(TEXT("Fire"), EInputEvent::IE_Pressed, this, &AMyPawn::Fire);
-	PlayerInputComponent->BindAction(TEXT("Boost"), EInputEvent::IE_Pressed, this, &AMyPawn::Boost);
-	PlayerInputComponent->BindAction(TEXT("Boost"), EInputEvent::IE_Released, this, &AMyPawn::Unboost);
+	UEnhancedInputComponent* UIC = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	if (UIC)
+	{
+		UIC->BindAction(IA_Rotate, ETriggerEvent::Triggered, this, &AMyPawn::Rotate);
+		UIC->BindAction(IA_Fire, ETriggerEvent::Triggered, this, &AMyPawn::Fire);
+		UIC->BindAction(IA_Boost, ETriggerEvent::Triggered, this, &AMyPawn::Boost);
+		UIC->BindAction(IA_Boost, ETriggerEvent::Canceled, this, &AMyPawn::Unboost);
+
+	}
+}
+
+void AMyPawn::Rotate(const FInputActionValue& Value)
+{
+	FVector2D Rot = Value.Get<FVector2D>();
+	Rot = Rot * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 60.0f;
+
+	AddActorLocalRotation(FRotator(Rot.Y, 0, Rot.X));
 
 }
 
-void AMyPawn::Pitch(float Value)
+void AMyPawn::Fire(const FInputActionValue& Value)
 {
-	AddActorLocalRotation(FRotator(RotationSpeed * Value * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()), 0, 0));
+	GetWorld()->SpawnActor<ARocket>(RocketTemplate, Arrow->K2_GetComponentToWorld());
 }
 
-void AMyPawn::Roll(float Value)
+void AMyPawn::Boost(const FInputActionValue& Value)
 {
-	AddActorLocalRotation(FRotator(0, 0, RotationSpeed * Value * UGameplayStatics::GetWorldDeltaSeconds(GetWorld())));
 }
 
-void AMyPawn::Fire()
+void AMyPawn::Unboost(const FInputActionValue& Value)
 {
-	GetWorld()->SpawnActor<AMyActor>(AMyActor::StaticClass(),
-		Arrow->K2_GetComponentToWorld());
-}
-
-void AMyPawn::Boost()
-{
-	BoostValue = 1.0f;
-}
-
-void AMyPawn::Unboost()
-{
-	BoostValue = 0.5f;
 }
